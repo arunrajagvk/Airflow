@@ -22,6 +22,8 @@ Core Component:
 
 A DAG is a data pipeline, an Operator is a task.
 
+1->2->3 (flow should not be looped)
+
 An Executor defines how your tasks are execute whereas a worker is a process executing your task
 
 The scheduler schedules your tasks, the web server serves the UI, the database stores the metadata of Airflow.
