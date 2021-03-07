@@ -137,6 +137,65 @@ with DAG('user_processing', schedule_interval='@daily',
         default_args=default_args, catchup=False) as dag:
 
 """
+Default Executor for Airflow: SequentialExecutor
+airflow@airflowvm:~/airflow$ airflow config get-value core sql_alchemy_conn
+sqlite:////home/airflow/airflow/airflow.db
+airflow@airflowvm:~/airflow$ ls
+airflow-webserver.pid  airflow.cfg  airflow.db  dags  logs  unittests.cfg  webserver_config.py
+
+--Sqlite doesnt allow multiple writes at the same time that's why we cannot use sql lite for parallel
+
+airflow@airflowvm:~/airflow$ airflow config get-value core executor
+SequentialExecutor
+
+
+-- To execute multiple tasks parallel, we have to change the DB to Postgres which supports multiple read and write parallel
+
+-- Change the executor to LocalExecutor - converts tasks to subprocess and runs parallel in machine 
+
+Step1:
+
+airflow@airflowvm:~/airflow$ sudo apt update 
+airflow@airflowvm:~/airflow$ sudo apt install postgresql
+
+-- open postgresql 
+
+(sandbox) airflow@airflowvm:~$ sudo -u postgres psql
+
+$$ ALTER TABLE user PASSWORD 'postgres';
+\q
+
+Step 2:
+-- Change airflow.cfg
+
+sql_alchemy_conn = postgresql+psycopg2://postgres:postgres@localhost/postgres
+
+# The executor class that airflow should use. Choices include
+# ``SequentialExecutor``, ``LocalExecutor``, ``CeleryExecutor``, ``DaskExecutor``,
+# ``KubernetesExecutor``, ``CeleryKubernetesExecutor`` or the
+# full import path to the class when using a custom executor.
+
+executor = LocalExecutor
+
+
+Step 3: 
+
+-- Stop airflow scheduler and webserver 
+-- (sandbox) airflow@airflowvm:~/airflow$ airflow db init 
+
+-- Create user :
+
+(sandbox) airflow@airflowvm:~/airflow$ airflow users create -u admin -p admin -r Admin -f admin -ladmin -e admin@airflow.com
+
+
+"""
+
+
+
+"""
+Scale executors - Multiple machines/nodes 
+
+to run multiple tasks parallelly in cluster : CeleryExecutor/KubernetesExecutor play major role.
 
 
 """
