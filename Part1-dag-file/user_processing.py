@@ -29,8 +29,8 @@ def _processing_user(ti):
     processed_user.to_csv('/tmp/processed_user.csv', index=None, header=False) 
 
 
-    with DAG('user_processing', schedule_interval='@daily', 
-            default_args=default_args, catchup=False) as dag:
+with DAG('user_processing', schedule_interval='@daily', 
+        default_args=default_args, catchup=False) as dag:
 
     creating_table = SqliteOperator(
         task_id='creating_table',
