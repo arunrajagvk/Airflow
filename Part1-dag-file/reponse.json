@@ -1,0 +1,66 @@
+{
+    "results": [
+        {
+            "gender": "male",
+            "name": {
+                "title": "Mr",
+                "first": "Tristan",
+                "last": "Cole"
+            },
+            "location": {
+                "street": {
+                    "number": 9863,
+                    "name": "West Street"
+                },
+                "city": "Kingston upon Hull",
+                "state": "Cornwall",
+                "country": "United Kingdom",
+                "postcode": "F66 1AE",
+                "coordinates": {
+                    "latitude": "14.4461",
+                    "longitude": "-45.5372"
+                },
+                "timezone": {
+                    "offset": "-8:00",
+                    "description": "Pacific Time (US & Canada)"
+                }
+            },
+            "email": "tristan.cole@example.com",
+            "login": {
+                "uuid": "f22ff62b-3709-4ea3-9463-393292c3b169",
+                "username": "greenduck322",
+                "password": "cuervo",
+                "salt": "oBbL6NmK",
+                "md5": "80c5867ba8886ff7e77d0dac2b3a6e09",
+                "sha1": "f9367e7b746928d7fa213ee1dc8c92ffbdaff348",
+                "sha256": "f0a1eb45ae277219c0f3bab0e2257954edcfffa40aad06390aa32e3223a42919"
+            },
+            "dob": {
+                "date": "1978-04-30T19:28:27.943Z",
+                "age": 43
+            },
+            "registered": {
+                "date": "2006-01-08T06:40:01.028Z",
+                "age": 15
+            },
+            "phone": "026 9878 4592",
+            "cell": "0737-723-309",
+            "id": {
+                "name": "NINO",
+                "value": "RA 27 10 72 F"
+            },
+            "picture": {
+                "large": "https://randomuser.me/api/portraits/men/17.jpg",
+                "medium": "https://randomuser.me/api/portraits/med/men/17.jpg",
+                "thumbnail": "https://randomuser.me/api/portraits/thumb/men/17.jpg"
+            },
+            "nat": "GB"
+        }
+    ],
+    "info": {
+        "seed": "d122a8c92daa356a",
+        "results": 1,
+        "page": 1,
+        "version": "1.3"
+    }
+}

@@ -60,6 +60,83 @@ If a task fails, check the logs by clicking on the task from the UI and "Logs"
 The Gantt view is super useful to sport bottlenecks and tasks are too long to execute
 
 
+Section 1:
+
+Airflow - Hands On
+
+open Aiflow.ova 
+1. Visual Studio Code 
+2. Install all extensions - remote-ssh, git pull, docker, yaml 
+3. Windows F1 - Type "remote-ssh: Connect to host" then "Add host"
+4. Type - "ssh -p 2222 airflow@localhost"
+5. choose the .config file 
+6. Check the added config file in the VS code 
+7. Again press F1 and choose remote-ssh: Connect to host "localhost" 
+8. Might promt for "linux", then "yes" to add key 
+9. Then password : "airflow" 
+10. Terminal menu click open "New terminal" 
+airflow@airflowvm:~$ python3 -m venv sandbox
+airflow@airflowvm:~$ source sandbox/bin/activate
+(sandbox) airflow@airflowvm:~$ pip install wheel
+(sandbox) airflow@airflowvm:~$ pip install apache-airflow==2.0.0 --constraint https://gist.githubusercontent.com/marclamberti/742efaef5b2d94f44666b0aec020be7c/raw/5da51f9fe99266562723fdfb3e11d3b6ac727711/constraint.txt 
+$ airflow db init (to inititalize metadata/db settings)
+$ airflow webserver
+$ airflow users create -u admin -p admin -f arunraja -l gvk -r Admin -e arunrajagvk.edu@gmail.com
+
+-- localhost:8080 / login : admin pwd: admin
+$ airflow scheduler 
+
+-- Followed by UI 
+
+Creating First Data Pipeline 
+Steps:
+
+1. Creating table 
+2. Is_api_available 
+3. extracting_user from the api 
+4. Processing_user 
+5. Storing_user
+
+DO's
+
+One operator one task 
+
+-- Provider packages : http://airflow.apache.org/docs/apache-airflow-providers/packages-ref.html
+
+-- Do pip install 
+
+-- Add connection details to the Admin -- Operators 
+
+Step1: ConnID: 'db_sqlite' (same as in the dag file)
+Step2: Connection type: sqlite
+Step3: Host: /home/airflow/airflow/airflow.db
+
+
+Testing a Task:
+
+$ airfow tasks test <dag_name> <task_name> <exec date>
+airflow tasks test user_processing creating_table 2020-01-01
+
+airflow tasks test user_processing is_api_available 2020-01-01
+
+
+-- Scheduling a dag IMPORTANT:
+
+the catchup=True will trigger all the non executed dags starting from the recent execution_date 
+and not the start date mentioned in the dag
+
+If catchup=False it will only trigger for the current execution date 
+
+ALL dates are UTC 
+
+we can change the timezone from >> airflow.cfg file "default_ui_timezone=utc"
+
+
+"""
+with DAG('user_processing', schedule_interval='@daily', 
+        default_args=default_args, catchup=False) as dag:
+
+"""
 
 
 """
