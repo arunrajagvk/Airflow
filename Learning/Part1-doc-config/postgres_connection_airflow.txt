@@ -1,0 +1,18 @@
+
+conn id : postgres_default
+conn_type: postgres 
+
+port: 5432
+extra: {"cursor":"realdictcursor"}
+
+/****************************/
+
+ALTER USER postgres PASSWORD 'postgres';
+
+SELECT * FROM connection; -- to check all the connections in airflow 
+
+/***************************/
+
+To check data in ElasticSearch from cmd promt:
+$ curl -X GET "http://localhost:9200/connections/_search" -H "Content-type: application/json" \
+-d '{"query":{"match_all":{}}}'

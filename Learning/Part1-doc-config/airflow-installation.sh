@@ -20,3 +20,11 @@ where pip3
   183  airflow db init
 
 ## WORKED with Python 3.8 version for mac os X
+##-- USING DOCKER COMPOSE 
+
+302  brew install wget
+  303  wget https://airflow.apache.org/docs/apache-airflow/stable/docker-compose.yaml
+  304  ls
+  305  .code
+  306  ls
+  307  docker-compose -f docker-compose.yaml up -d
