@@ -9,7 +9,7 @@ from airflow.models.baseoperator import chain, cross_downstream
 from datetime import datetime, timedelta
 
 default_args={
-    'retries': 5
+    'retries': 5,
     'retry_delay': timedelta(minutes=5) 
 }
 
@@ -29,14 +29,14 @@ with DAG(dag_id='sample_af2_dag', default_args=default_args,
     )
 
     checking_data = PythonOperator(
-        task_id='downloading_data',
+        task_id='checking_data',
         python_callable=_checking_data
     )
 
     waiting_for_data = FileSensor(
         task_id='waiting_for_data',
         fs_conn_id='fs_default',
-        file_path='my_files.txt'
+        filepath='my_files.txt'
     )
 
     processing_data = BashOperator(
