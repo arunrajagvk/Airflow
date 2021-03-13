@@ -4,6 +4,12 @@ from airflow.sensors.filesystem import FileSensor
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.providers.apache.hive.operators.hive import HiveOperator
+from airflow.providers.apache.spark.operators.spark_jdbc import SparkJDBCOperator
+from airflow.providers.apache.spark.operators.spark_sql import SparkSqlOperator
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+from airflow.operators.email import EmailOperator
+from airflow.providers.slack.operators.slack import SlackAPIPostOperator
+
 from datetime import datetime, timedelta
 import json
 import csv 
@@ -33,6 +39,38 @@ def _download_rates():
             with open('/Users/arunraja/airflow/dags/files/forex_rates.json', 'a') as outfile:
                 json.dump(outdata, outfile)
                 outfile.write('\n')
+
+# SLACK_CONN_ID = 'slack'
+# def task_fail_slack_alert(context):
+#     slack_webhook_token = BaseHook.get_connection(SLACK_CONN_ID).password
+#     slack_msg = """
+#             :red_circle: Task Failed. 
+#             *Task*: {task}  
+#             *Dag*: {dag} 
+#             *Execution Time*: {exec_date}  
+#             *Log Url*: {log_url} 
+#             """.format(
+#             task=context.get('task_instance').task_id,
+#             dag=context.get('task_instance').dag_id,
+#             ti=context.get('task_instance'),
+#             exec_date=context.get('execution_date'),
+#             log_url=context.get('task_instance').log_url,
+#         )
+#     failed_alert = SlackWebhookOperator(
+#         task_id='slack_test',
+#         http_conn_id='slack',
+#         webhook_token=slack_webhook_token,
+#         message=slack_msg,
+#         username='airflow')
+#     return failed_alert.execute(context=context)
+
+
+# task_with_failed_slack_alerts = BashOperator(
+#     task_id='fail_task',
+#     bash_command='exit 1',
+#     on_failure_callback=slack_failed_task,
+#     provide_context=True
+# )
 
 with DAG(dag_id='forex_data_pipeline',
         default_args=default_args, 
@@ -72,7 +110,7 @@ with DAG(dag_id='forex_data_pipeline',
 
     creating_forex_rates_table = HiveOperator(
         task_id="creating_forex_rates_table",
-        hive_cli_conn_id="hive_conn",
+        hive_cli_conn_id="hive_default",
         hql="""
             CREATE EXTERNAL TABLE IF NOT EXISTS forex_rates(
                 base STRING,
@@ -90,59 +128,34 @@ with DAG(dag_id='forex_data_pipeline',
         """
     )
 
-    ## HIVE OPERATOR
-    # /Library/Frameworks/Python.framework/Versions/3.8/bin/python3 -m pip install --upgrade pip
-    # python3 -m pip install apache-airflow-providers-apache-hive
-    ## template_fields = ['hql', 'schema', 'hive_cli_conn_id', 
-    # 'mapred_queue', 'hiveconfs', 'mapred_job_name', 'mapred_queue_priority']
-    # Let's say this is your kerberos ticket (likely from a keytab used for the remote service):
+    forex_processing = SparkSubmitOperator(
+        task_id='forex_processing',
+        conn_id='spark_conn',
+        application="/User/arunraja/airflow/dags/scripts/forex_processing.py",
+        verbose=False,
+        executor_cores=2,
+        num_executors=2,
+        executor_memory='256M',
+        driver_memory='1G'
+    )
 
-    # Ticket cache: FILE:/tmp/airflow_krb5_ccache
-    # Default principal: hive/myserver.myrealm@myrealm
+    sending_email_notification = EmailOperator(
+            task_id="sending_email",
+            to="airflow_course@yopmail.com",
+            subject="forex_data_pipeline",
+            html_content="""
+                <h3>forex_data_pipeline succeeded</h3>
+            """
+        )
+    
 
-    # Valid starting       Expires              Service principal
-    # 06/14/2018 17:52:05  06/15/2018 17:49:35  krbtgt/myrealm@myrealm
-    # 	renew until 06/17/2018 05:49:33
+    sending_slack_notification = SlackAPIPostOperator(
+        task_id="sending_slack",
+        token='asdljfwiei3234kndoiff2309e',
+        username="airflow",
+        text="DAG forex_data_pipeline: DONE",
+        channel="#airflow-exploit"
+    )
 
-    # # Here's what creating a connection looks like:
-
-    #  airflow connections --add \
-    # --conn_id metastore_cluster1 \
-    # --conn_type 'hive_metastore' \
-    # --conn_host 'myserver.mydomain \
-    # --conn_port 9083 \
-    # --conn_extra '{"authMechanism":"GSSAPI", "kerberos_service_name":"hive"}'
-
-    # # But this won't work unless you make sure your airflow.cfg has this:
-    # security = kerberos
-
-    # # Note: I'm not sure what else that "security = kerberos" setting really does.
-    # # I had it unset for quite a while and was still able to integrate with Kerberized Hive just fine.
-
-    # # Test it from a CLI:
-    # (venv) [airflow@mymachine dags]$ python
-    # >>> from airflow.hooks import hive_hooks
-    # >>> hm = hive_hooks.HiveMetastoreHook(metastore_conn_id='metastore_cluster1')
-    # [2018-06-14 18:07:34,736] {base_hook.py:80} INFO - Using connection to: myserver.mydomain
-    # >>> hm.get_databases()
-
-    # file_name = "to_" + channel + "_" + yesterday.strftime("%Y-%m-%d") + ".csv"
-
-    #     load_to_hdfs = BashOperator(
-    #         task_id="put_" + channel + "_to_hdfs",
-    #         bash_command="HADOOP_USER_NAME=hdfs hadoop fs -put -f "
-    #         + local_dir
-    #         + file_name
-    #         + hdfs_dir
-    #         + channel
-    #         + "/",
-    #     )
-
-    #     load_to_hdfs << analyze_tweets
-
-    #     load_to_hive = HiveOperator(
-    #         task_id="load_" + channel + "_to_hive",
-    #         hql="LOAD DATA INPATH '" + hdfs_dir + channel + "/" + file_name + "' "
-    #         "INTO TABLE " + channel + " "
-    #         "PARTITION(dt='" + dt + "')",
-    #     )
+    is_forex_rates_available >> is_forex_currencies_file_available >> downloading_rates >> saving_rates >> creating_forex_rates_table >> forex_processing 
+    forex_processing >> sending_email_notification >> sending_slack_notification
